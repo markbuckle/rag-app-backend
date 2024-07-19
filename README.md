@@ -4,6 +4,8 @@
 
 AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happeing quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
 
+## Getting Started 
+
 ### Configure AWS
 
 You need to have an AWS account, and AWS CLI set up on your machine. You'll also need to have Bedrock enabled on AWS (and granted model access to Claude or whatever you want to use).
@@ -59,10 +61,10 @@ Sources: ['src/data/source/galaxy-design-client-guide.pdf:1:0', 'src/data/source
 
 ```sh
 # From image/src directory.
-python app_api_handler.py
+uvicorn app_api_handler:app --host 127.0.0.1 --port 8000
 ```
 
-Then go to `http://0.0.0.0:8000/docs` to try it out.
+Then go to `http://127.0.0.1:8000/` to try it out.
 
 ## Using Docker Image
 
