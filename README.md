@@ -59,8 +59,8 @@ Sources: ['src/data/source/galaxy-design-client-guide.pdf:1:0', 'src/data/source
 
 ### Starting FastAPI Server
 
+From the image/src directory:
 ```sh
-# From image/src directory.
 uvicorn app_api_handler:app --host 127.0.0.1 --port 8000
 ```
 
