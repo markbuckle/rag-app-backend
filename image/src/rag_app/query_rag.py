@@ -6,13 +6,14 @@ from rag_app.get_chroma_db import get_chroma_db
 from typing import List
 
 PROMPT_TEMPLATE = """
-Answer the question based only on the following context:
+You are an expert assistant. Answer the question based only on the following context:
 {context}
 ---
 Answer the question based on the above context: {question}
+Provide a detailed and comprehensive response. Rephrase and format the response to make it clear and engaging.
 """
 
-BEDROCK_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
+BEDROCK_MODEL_ID = "amazon.titan-text-premier-v1:0"
 
 
 @dataclass
@@ -26,23 +27,43 @@ def query_rag(query_text: str) -> QueryResponse:
     db = get_chroma_db()
 
     # Search the DB.
-    results = db.similarity_search_with_score(query_text, k=3)
+    results = db.similarity_search_with_score(query_text, k=5)
     context_text = "\n\n---\n\n".join([doc.page_content for doc, _score in results])
     prompt_template = ChatPromptTemplate.from_template(PROMPT_TEMPLATE)
     prompt = prompt_template.format(context=context_text, question=query_text)
     print(prompt)
 
     model = ChatBedrock(model_id=BEDROCK_MODEL_ID)
-    response = model.invoke(prompt)
+    response = model.invoke(prompt, temperature=0.7)
     response_text = response.content
 
+    # Rephrase and format the response
+    formatted_response = format_response(response_text)
+
+    # Truncate the response to a maximum of 150 characters
+    truncated_response = truncate_response(formatted_response, max_length=150)
+
     sources = [doc.metadata.get("id", None) for doc, _score in results]
-    print(f"Response: {response_text}\nSources: {sources}")
+    print(f"Response: {truncated_response}\nSources: {sources}")
 
     return QueryResponse(
-        query_text=query_text, response_text=response_text, sources=sources
+        query_text=query_text, response_text=formatted_response, sources=sources
     )
 
 
+def format_response(response_text: str) -> str:
+    # Example of rephrasing and formatting the response
+    lines = response_text.split(". ")
+    formatted_lines = [f"- {line.strip().capitalize()}." for line in lines if line]
+    return "\n".join(formatted_lines)
+
+
+def truncate_response(response_text: str, max_length: int) -> str:
+    if len(response_text) <= max_length:
+        return response_text
+    truncated_text = response_text[:max_length].rsplit(" ", 1)[0]
+    return truncated_text + "..."
+
+
 if __name__ == "__main__":
-    query_rag("How much does a landing page cost to develop?")
+    query_rag("How can I improve my recovery?")
