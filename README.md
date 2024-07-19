@@ -8,7 +8,7 @@ AI apps tend to use many platform specific binaries in its dependencies. This is
 
 ### Configure AWS
 
-You need to have an AWS account, and AWS CLI set up on your machine. You'll also need to have Bedrock enabled on AWS (and granted model access to Claude or whatever you want to use).
+You need to have an AWS account, and AWS CLI set up on your machine. You'll also need to have Bedrock enabled on AWS (and granted model access to Claude or whatever you want to use). If you haven't done this before there are plenty of good resources on Amazon's website and/or youtube tutorials.
 
 ### Update .env File with AWS Credentials
 
