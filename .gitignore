@@ -1,6 +1,6 @@
 *.pyc
 **/chroma
-env/
+myenv/
 .env
 
 # Some files generated for tutorial.
