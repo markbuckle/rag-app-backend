@@ -71,7 +71,7 @@ python app_api_handler.py
 ```
 You should see something like this:
 
-
+<img width=600 src="https://github.com/markbuckle/AiAppDeploy/blob/main/localtest.png?raw=true">
 
 If the default address 0.0.0.0:8000 does not work, try manually typing 127.0.0.1.8000 into your URL instead.
 
