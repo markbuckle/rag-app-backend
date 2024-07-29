@@ -4,7 +4,36 @@
 
 AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happeing quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
 
+## RAG App
+
+Insert Retrieval Augmented Generation apps description 
+
+This app chatbot will be able to use the PDFs as a datasource.
+
 ## Getting Started 
+
+### Install Requirements
+
+Set up virtual environment then run:
+```pwsh
+pip install -r image/requirements.txt
+```
+
+### Building the Vector DB
+
+Put all the PDF source files you want into `image/src/data/source/`. Then go `image` and run:
+
+```sh
+# Use "--reset" if you want to overwrite an existing DB.
+python populate_database.py --reset
+```
+Load the database and provide the response:
+```pwsh
+python rag_app\query_rag.py
+```
+## Architecture Overview
+
+<img width=600 src="">
 
 ### Configure AWS
 
@@ -24,21 +53,6 @@ TABLE_NAME=YourTableName
 This will be used by Docker for when we want to test the image locally. The AWS keys are just your normal AWS credentials and region you want to run this in (even when running locally you will still need access to Bedrock LLM and to the DynamoDB table to write/read the data).
 
 You'll also need a TABLE_NAME for the DynamoDB table for this to work (so you'll have to create that first).
-
-### Installing Requirements
-
-```sh
-pip install -r image/requirements.txt
-```
-
-### Building the Vector DB
-
-Put all the PDF source files you want into `image/src/data/source/`. Then go `image` and run:
-
-```sh
-# Use "--reset" if you want to overwrite an existing DB.
-python populate_database.py --reset
-```
 
 ### Running the App
 
