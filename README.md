@@ -185,7 +185,7 @@ Assuming you've build the image from the previous step.
 docker run --rm -p 8000:8000 --entrypoint python --env-file .env aws_rag_app /var/task/app_api_handler.py
 ```
 If it runs correctly, it should look something like:
-<img width=600 src="">
+<img width=600 src="https://github.com/markbuckle/AiAppDeploy/blob/main/rundocker.png?raw=true">
 
 If the above command doesn't work, it might be worth reviewing the [docker run documentation](https://docs.docker.com/engine/reference/run/).
 
