@@ -33,7 +33,7 @@ python rag_app\query_rag.py
 ```
 ## Architecture Overview
 
-<img width=600 src="">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
 
 ### Configure AWS
 
