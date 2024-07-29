@@ -77,7 +77,7 @@ If the default address 0.0.0.0:8000 does not work, try manually typing 127.0.0.1
 
 You can also type 0.0.0.0:8000/docs or 127.0.0.1.8000/docs to see the FastAPI endpoints. Go to the /submit_query endpoint and try it out. Replace the string with something like 'How can I recover faster?" You should see something like:
 
-<img width=800 src="">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/submitquery.png?raw=true">
 
 
 ### Configure AWS
