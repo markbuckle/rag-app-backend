@@ -1,9 +1,13 @@
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 from dataclasses import dataclass
 from typing import List
 from langchain.prompts import ChatPromptTemplate
 from langchain_aws import ChatBedrock
-from rag_app.get_chroma_db import get_chroma_db
-from typing import List
+from get_chroma_db import get_chroma_db
 
 PROMPT_TEMPLATE = """
 You are an expert assistant. Answer the question based only on the following context:
@@ -23,6 +27,7 @@ class QueryResponse:
     sources: List[str]
 
 
+# this is the core function of the app
 def query_rag(query_text: str) -> QueryResponse:
     db = get_chroma_db()
 
@@ -41,7 +46,7 @@ def query_rag(query_text: str) -> QueryResponse:
     formatted_response = format_response(response_text)
 
     # Truncate the response to a maximum of 150 characters
-    truncated_response = truncate_response(formatted_response, max_length=150)
+    truncated_response = truncate_response(formatted_response, max_length=500)
 
     sources = [doc.metadata.get("id", None) for doc, _score in results]
     print(f"Response: {truncated_response}\nSources: {sources}")
@@ -66,4 +71,4 @@ def truncate_response(response_text: str, max_length: int) -> str:
 
 
 if __name__ == "__main__":
-    query_rag("How can I improve my recovery?")
+    query_rag("How long should I work or study for at a time?")
