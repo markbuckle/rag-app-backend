@@ -10,7 +10,7 @@ Insert Retrieval Augmented Generation apps description
 
 This app chatbot will be able to use the PDFs as a datasource.
 
-## Getting Started 
+## Getting Started:
 
 ### Install Requirements
 
@@ -34,6 +34,46 @@ python rag_app\query_rag.py
 ## Architecture Overview
 
 <img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
+
+### Create FastAPI Wrapper
+
+Import FastAPI and create a new FastAPI app:
+```py
+from fastapi import FastAPI
+from rag_app.query_rag import query_rag, QueryResponse
+
+app= FastAPI()
+```
+Create a new API route to handle the query and generate a response:
+```py
+@app.post("/submit_query")
+def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
+    # Create the query item, and put it into the data-base.
+    new_query = QueryModel(query_text=request.query_text)
+```
+Test locally using:
+```py
+if __name__ == "__main__":
+    port = 8000
+    print(f"Running the FastAPI server on port {port}.")
+    uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port)
+```
+To make this work with AWS Lambda, wrap the FastAPI app with the handler adapter library function. This turns it into a lambda compatible handler:
+```py
+from mangum import Mangum
+
+app = FastAPI()
+handler = Mangum(app)
+```
+Run:
+```pwsh
+python app_api_handler.py
+```
+You should see something like this:
+
+
+
+If the default address 0.0.0.0:8000 does not work, try manually typing 127.0.0.1.8000 into your URL instead.
 
 ### Configure AWS
 
