@@ -1,23 +1,20 @@
-FROM ubuntu:22.04
+FROM python:3.12-slim
 
-# Set the working directory in the container
-WORKDIR /var/task
+# Install GCC and G++
+RUN apt-get update && apt-get install -y \
+    gcc g++ make
 
-# Install the necessary build tools, compiler, and SQLite development package
-RUN apt-get update && \
-    apt-get install -y build-essential gcc python3-dev python3-pip sqlite3 libsqlite3-dev
+# Set the LAMBDA_TASK_ROOT environment variable
+ENV LAMBDA_TASK_ROOT=/var/task
 
-# Upgrade pip to the latest version
-RUN pip3 install --upgrade pip
-
-# Copy the requirements file into the container
-COPY requirements.txt .
+# Copy requirements.txt to the working directory
+COPY requirements.txt ${LAMBDA_TASK_ROOT}/requirements.txt
 
 # Required to make SQLite3 work for Chroma.
-RUN pip3 install pysqlite3-binary
+RUN pip install pysqlite3-binary
 
-# Install any needed packages specified in requirements.txt
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install the specified packages
+RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt --upgrade
 
 # For local testing.
 EXPOSE 8000
@@ -26,9 +23,6 @@ EXPOSE 8000
 ENV IS_USING_IMAGE_RUNTIME=True
 
 # Copy all files in ./src
-COPY src/app_api_handler.py .
-COPY src/rag_app ./rag_app
-COPY src/data/chroma ./data/chroma
-
-# Command to run the application
-CMD ["python3", "app_api_handler.handler"]
+COPY src/* ${LAMBDA_TASK_ROOT}
+COPY src/rag_app ${LAMBDA_TASK_ROOT}/rag_app
+COPY src/data/chroma ${LAMBDA_TASK_ROOT}/data/chroma

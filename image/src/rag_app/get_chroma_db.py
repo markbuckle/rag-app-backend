@@ -17,11 +17,11 @@ def get_chroma_db():
     if not CHROMA_DB_INSTANCE:
 
         # Hack needed for AWS Lambda's base Python image (to work with an updated version of SQLite).
-        # In Lambda runtime, we need to copy ChromaDB to /tmp so it can have write permissions.
+        # In Lambda runtime, we need to copy ChromaDB to /Temp so it can have write permissions.
         if IS_USING_IMAGE_RUNTIME:
             __import__("pysqlite3")
             sys.modules["sqlite3"] = sys.modules.pop("pysqlite3")
-            copy_chroma_to_tmp()
+            copy_chroma_to_temp()
 
         # Prepare the DB.
         CHROMA_DB_INSTANCE = Chroma(
@@ -33,14 +33,15 @@ def get_chroma_db():
     return CHROMA_DB_INSTANCE
 
 
-def copy_chroma_to_tmp():
+# helper function
+def copy_chroma_to_temp():
     dst_chroma_path = get_runtime_chroma_path()
 
     if not os.path.exists(dst_chroma_path):
         os.makedirs(dst_chroma_path)
 
-    tmp_contents = os.listdir(dst_chroma_path)
-    if len(tmp_contents) == 0:
+    temp_contents = os.listdir(dst_chroma_path)
+    if len(temp_contents) == 0:
         print(f"Copying ChromaDB from {CHROMA_PATH} to {dst_chroma_path}")
         os.makedirs(dst_chroma_path, exist_ok=True)
         shutil.copytree(CHROMA_PATH, dst_chroma_path, dirs_exist_ok=True)
@@ -48,9 +49,9 @@ def copy_chroma_to_tmp():
         print(f"✅ ChromaDB already exists in {dst_chroma_path}")
 
 
-# modify path to use the tmp folder because we need write access
+# modify path to use the Temp folder because we need write access
 def get_runtime_chroma_path():
     if IS_USING_IMAGE_RUNTIME:
-        return f"/tmp/{CHROMA_PATH}"
+        return f"/Temp/{CHROMA_PATH}"
     else:
         return CHROMA_PATH
