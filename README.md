@@ -23,8 +23,8 @@ pip install -r image/requirements.txt
 
 Put all the PDF source files you want into `image/src/data/source/`. Then go `image` and run:
 
-```sh
-# Use "--reset" if you want to overwrite an existing DB.
+Use "--reset" if you want to overwrite an existing DB:
+```pwsh
 python populate_database.py --reset
 ```
 Load the database and provide the response:
@@ -79,6 +79,43 @@ You can also type 0.0.0.0:8000/docs or 127.0.0.1.8000/docs to see the FastAPI en
 
 <img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/submitquery.png?raw=true">
 
+With this code we've now put our entire app inside an API. Next we have to figure out how to deploy it.
+
+### Docker image
+
+Create a dockerfile within the /image folder
+
+Run:
+```pwsh
+python populate_database.py --reset
+```
+
+If you see the /chroma folder within your /data folder you should be good to go.
+
+Update your dockerfile code:
+```txt
+FROM public.ecr.aws/lambda/python:3.12
+
+# Copy requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
+
+# Required to make SQLlite3 work for Chroma.
+RUN pip install pysqlite3-binary
+
+# Install the specified packages
+RUN pip install -r requirements.txt --upgrade
+
+# For local testing.
+EXPOSE 8000
+
+# Set IS_USING_IMAGE_RUNTIME Environment Variable
+ENV IS_USING_IMAGE_RUNTIME=True
+
+# Copy all files in ./src
+COPY src/* ${LAMBDA_TASK_ROOT}
+COPY src/rag_app ${LAMBDA_TASK_ROOT}/rag_app
+COPY src/data/chroma ${LAMBDA_TASK_ROOT}/data/chroma
+```
 
 ### Configure AWS
 
@@ -97,7 +134,7 @@ TABLE_NAME=YourTableName
 
 This will be used by Docker for when we want to test the image locally. The AWS keys are just your normal AWS credentials and region you want to run this in (even when running locally you will still need access to Bedrock LLM and to the DynamoDB table to write/read the data).
 
-You'll also need a TABLE_NAME for the DynamoDB table for this to work (so you'll have to create that first).
+You'll also need a TABLE_NAME for the DynamoDB table for this to work. Don't worry about this right away. You'll need to create one once we started using a table to store the results from our app.
 
 ### Running the App
 
@@ -116,28 +153,19 @@ Response:  Based on the context provided, the cost for a landing page service of
 Sources: ['src/data/source/galaxy-design-client-guide.pdf:1:0', 'src/data/source/galaxy-design-client-guide.pdf:7:0', 'src/data/source/galaxy-design-client-guide.pdf:7:1']
 ```
 
-### Starting FastAPI Server
-
-From the image/src directory:
-```sh
-uvicorn app_api_handler:app --host 127.0.0.1 --port 8000
-```
-
-Then go to `http://127.0.0.1:8000/` to try it out.
-
 ## Using Docker Image
 
 ### Build and Test the Image Locally
 
 These commands can be run from `image/` directory to build, test, and serve the app locally.
 
-```sh
+```pwsh
 docker build --platform linux/amd64 -t aws_rag_app .
 ```
 
 This will build the image (using linux amd64 as the platform — we need this for `pysqlite3` for Chroma).
 
-```sh
+```pwsh
 # Run the container using command `python app_work_handler.main`
 docker run --rm -it \
     --entrypoint python \
@@ -153,18 +181,21 @@ You will also need to have Bedrock's models enabled and granted for the region y
 
 Assuming you've build the image from the previous step.
 
-```sh
-docker run --rm -p 8000:8000 \
-    --entrypoint python \
-    --env-file .env \
-    aws_rag_app app_api_handler.py
+```pwsh
+docker run --rm -p 8000:8000 --entrypoint python --env-file .env aws_rag_app /var/task/app_api_handler.py
 ```
+If it runs correctly, it should look something like:
+<img width=600 src="">
+
+If the above command doesn't work, it might be worth reviewing the [docker run documentation](https://docs.docker.com/engine/reference/run/).
+
+
 
 ## Testing Locally
 
 After running the Docker container on localhost, you can access an interactive API page locally to test it: `http://0.0.0.0:8000/docs`.
 
-```sh
+```pwsh
 curl -X 'POST' \
   'http://0.0.0.0:8000/submit_query' \
   -H 'accept: application/json' \
