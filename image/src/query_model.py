@@ -8,12 +8,16 @@ from botocore.exceptions import ClientError
 
 # GET the table name from the ENV
 TABLE_NAME = os.environ.get("TABLE_NAME")
+TTL_EXPIRE_MONTHS = 6  # Only keep queries for 6 months.
+TTL_EXPIRE_TIMESTAMP = 60 * 60 * 24 * 30 * TTL_EXPIRE_MONTHS
 
 
 # item mapper; loads the table name and specify fields and datatypes
 class QueryModel(BaseModel):
     query_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
+    user_id: str
     create_time: int = Field(default_factory=lambda: int(time.time()))
+    ttl: int = Field(default_factory=lambda: int(time.time() + TTL_EXPIRE_TIMESTAMP))
     query_text: str
     answer_text: Optional[str] = None
     sources: List[str] = Field(default_factory=list)
