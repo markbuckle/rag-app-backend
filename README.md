@@ -181,6 +181,18 @@ If the docker run command didn't work, it might be worth reviewing the [docker r
 
 You may need to change the 0.0.0.0:8000 link to 127.0.0.1:8000 manually. Also manually enter /docs to access the FastAPI endpoints.
 
+## Unit Testing 
+
+Once you have a server running locally on `localhost:8000`, you can run the unit tests in `test/` from the root folder. You'll need to have `pytest` installed (`pip install pytest`).
+
+```sh
+pytest  # Run all tests
+```
+
+```sh
+pytest -k test_can_submit_query -s  # Run a specific test. Print output.
+```
+
 ## AWS CDK to create Cloud Infrastructure
 
 Enable all of the AWS Bedrock LLM models that you want to use for this app if you have not already
