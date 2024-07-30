@@ -302,7 +302,7 @@ Right now, our app uses AI which can take quite a long time to execute. It might
 
 To implement this we'll have to split our Lambda into two separate functions. The user will only interact with our API function and that will trigger an asynchronous execution of the worker function in the background. 
 
-<img width=700 src="">
+<img width=700 src="https://github.com/markbuckle/AiAppDeploy/blob/main/asyncfunction.png?raw=true">
 
 Since the 30s timeout is a property of the API endpoint itself and not the Lambda funciton we can now configure the worker function to have a much longer timeout (up to 15 minutes). This is very good if we have a large tak for the Worker to perform.
 
@@ -380,33 +380,6 @@ Run:
 cdk deploy
 ```
 The /submit-query API endpoint won't generate an answer right away, but it will give oyu a query_id. Copy this id and paste it in the /get_query id. This will allow us to get an answer faster than waiting for the response to generage just in the submit_query API.
-
-### Testing Locally
-
-After running the Docker container on localhost, you can access an interactive API page locally to test it: `http://0.0.0.0:8000/docs`.
-
-```pwsh
-curl -X 'POST' \
-  'http://0.0.0.0:8000/submit_query' \
-  -H 'accept: application/json' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "query_text": "How much does a landing page for a small business cost?"
-}'
-```
-
-## Unit Testing
-
-Once you have a server running locally on `localhost:8000`, you can run the unit tests in `test/` from the root folder. You'll need to have `pytest` installed (`pip install pytest`).
-
-```pwsh
-pytest  # Run all tests
-```
-
-```pwsh
-pytest -k test_can_submit_query -s  # Run a specific test. Print output.
-```
-
 
 ## Front End
 
