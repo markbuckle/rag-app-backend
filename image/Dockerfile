@@ -1,20 +1,13 @@
-FROM python:3.12-slim
+FROM public.ecr.aws/lambda/python:3.11
 
-# Install GCC and G++
-RUN apt-get update && apt-get install -y \
-    gcc g++ make
+# Copy requirements.txt
+COPY requirements.txt ${LAMBDA_TASK_ROOT}
 
-# Set the LAMBDA_TASK_ROOT environment variable
-ENV LAMBDA_TASK_ROOT=/var/task
-
-# Copy requirements.txt to the working directory
-COPY requirements.txt ${LAMBDA_TASK_ROOT}/requirements.txt
-
-# Required to make SQLite3 work for Chroma.
+# Required to make SQLlite3 work for Chroma.
 RUN pip install pysqlite3-binary
 
 # Install the specified packages
-RUN pip install -r ${LAMBDA_TASK_ROOT}/requirements.txt --upgrade
+RUN pip install -r requirements.txt --upgrade
 
 # For local testing.
 EXPOSE 8000
