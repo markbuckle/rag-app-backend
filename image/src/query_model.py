@@ -6,9 +6,11 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from botocore.exceptions import ClientError
 
+# GET the table name from the ENV
 TABLE_NAME = os.environ.get("TABLE_NAME")
 
 
+# item mapper; loads the table name and specify fields and datatypes
 class QueryModel(BaseModel):
     query_id: str = Field(default_factory=lambda: uuid.uuid4().hex)
     create_time: int = Field(default_factory=lambda: int(time.time()))
@@ -22,6 +24,7 @@ class QueryModel(BaseModel):
         dynamodb = boto3.resource("dynamodb")
         return dynamodb.Table(TABLE_NAME)
 
+    # saves data from the table using the AWS SDK and python
     def put_item(self):
         item = self.as_ddb_item()
         try:
@@ -35,6 +38,7 @@ class QueryModel(BaseModel):
         item = {k: v for k, v in self.dict().items() if v is not None}
         return item
 
+    # loads data from the table
     @classmethod
     def get_item(cls: "QueryModel", query_id: str) -> "QueryModel":
         try:
