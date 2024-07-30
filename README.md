@@ -393,6 +393,29 @@ cdk deploy
 ```
 The /submit-query API endpoint won't generate an answer right away, but it will give oyu a query_id. Copy this id and paste it in the /get_query id. This will allow us to get an answer faster than waiting for the response to generage just in the submit_query API.
 
+## API Updates
+
+### Add query limits
+
+We need to add some limits to the size of queries so we don't accidentally get expensive API bills from very large queries. 
+
+We'll also need to test that it works:
+```pwsh
+cdk deploy
+```
+
+### update DB model with user_id and ttl, and add a GSI
+
+We want to be able to list all queries submitted by a user. So first we need to add a `user_id` to the item model, and a GSI so we can search by user/time. We may also want a `ttl` field to help us expire old entries (useful for testing).
+
+### add the list_queries API
+
+Use the database GSI and model we created earlier to add a new API to list query items by user. Add some integration tests for it.
+
+### add CORS headers to the API
+
+We need these CORS headers to make it work with our frontend.
+
 ## Front End
 
 ### Install Tools to Generate API Client
