@@ -157,7 +157,7 @@ Sources: ['src/data/source/galaxy-design-client-guide.pdf:1:0', 'src/data/source
 
 ### Build and Test the Image Locally
 
-These commands can be run from `image/` directory to build, test, and serve the app locally.
+These commands can be run from `/image` directory to build, test, and serve the app locally.
 
 ```pwsh
 docker build --platform linux/amd64 -t aws_rag_app .
@@ -165,33 +165,223 @@ docker build --platform linux/amd64 -t aws_rag_app .
 
 This will build the image (using linux amd64 as the platform — we need this for `pysqlite3` for Chroma).
 
-```pwsh
-# Run the container using command `python app_work_handler.main`
-docker run --rm -it \
-    --entrypoint python \
-    --env-file .env \
-    aws_rag_app app_work_handler.py
-```
-
-This will test the image, seeing if it can run the RAG/AI component with a hard-coded question (see ` app_work_handler.py`). But since it uses Bedrock as the embeddings and LLM platform, you will need an AWS account and have all the environment variables for your access set (`AWS_ACCESS_KEY_ID`, etc).
-
 You will also need to have Bedrock's models enabled and granted for the region you are running this in.
 
-## Running Locally as a Server
+### Running Locally as a Server
 
-Assuming you've build the image from the previous step.
+Assuming you've built the image from the previous step.
 
 ```pwsh
 docker run --rm -p 8000:8000 --entrypoint python --env-file .env aws_rag_app /var/task/app_api_handler.py
 ```
 If it runs correctly, it should look something like:
-<img width=600 src="https://github.com/markbuckle/AiAppDeploy/blob/main/rundocker.png?raw=true">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/rundocker.png?raw=true">
 
-If the above command doesn't work, it might be worth reviewing the [docker run documentation](https://docs.docker.com/engine/reference/run/).
+If the docker run command didn't work, it might be worth reviewing the [docker run documentation](https://docs.docker.com/engine/reference/run/) and adjusting the entrypoint, port or env-files according to your specific setup.
 
+You may need to change the 0.0.0.0:8000 link to 127.0.0.1:8000 manually. Also manually enter /docs to access the FastAPI endpoints.
 
+## AWS CDK to create Cloud Infrastructure
 
-## Testing Locally
+Enable all of the AWS Bedrock LLM models that you want to use for this app if you have not already
+
+### Create a CDK Project
+
+This can only be done in an empty directory. Create a new folder:
+```pwsh
+mkdir rag-cdk-infra
+```
+```pwsh
+cd rag-cdk-infra
+```
+```pwsh
+cdk init app --language=typescript
+```
+In our code we'll need to create a reference to an image. The code below will bring us to the image folder we were using earlier:
+```ts
+const apiImageCode = DockerImageCode.fromImageAsset("../image", {
+      cmd: ["app_api_handler.handler"],
+      buildArgs: {
+        platform: "linux/amd64",
+      },
+    });
+```
+Create a Lambda function using the image. You can adjust the memorySize and timeout settings to your liking:
+```ts
+    const apiFunction = new DockerImageFunction(this, "ApiFunc", {
+      code: apiImageCode,
+      memorySize: 256,
+      timeout: cdk.Duration.seconds(30),
+      architecture: Architecture.X86_64,
+    });
+```
+Grant our function permissions to use Amazon Bedrock:
+```ts
+    apiFunction.role?.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
+    );
+```
+Create a function URL so that we can access the function from the internet via a public endpoint:
+```ts
+    const functionUrl = apiFunction.addFunctionUrl({
+      authType: FunctionUrlAuthType.NONE,
+    });
+    new cdk.CfnOutput(this, "FunctionUrl", {
+      value: functionUrl.url,
+    });
+```
+Go to your terminal, hop in the /rag-cdk-infra folder and make sure you are using an updated AWS CDK CLI:
+```pwsh
+npm install -g aws-cdk@latest
+```
+Bootstrap with:
+```pwsh
+cdk bootstrap
+```
+Finally, deploy your app using:
+```pwsh
+cdk deploy
+```
+https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
+
+### Save and Load Results
+
+To save query responses to a database, we'll need to add a datbase table to our infrastructure and modify our code to use that table. To achieve this we'll use DynamoDB. 
+Update the rag-cdk-infra-stack.ts code with the following:
+
+```py
+import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
+
+const ragQueryTable = new Table(this, "RagQueryTable", {
+      partitionKey: { name: "query_id", type: AttributeType.STRING },
+      billingMode: BillingMode.PAY_PER_REQUEST,
+});
+
+environment: {
+    TABLE_NAME: ragQueryTable.tableName,
+},
+
+ragQueryTable.grantReadWriteData(apiFunction);
+```
+Update app_api_handler.py with the following:
+```py
+from query_model import QueryModel
+from rag_app.query_rag import query_rag
+
+@app.get("/get_query")
+def get_query_endpoint(query_id: str) -> QueryModel:
+    query = QueryModel.get_item(query_id)
+    return query
+
+def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
+
+    # Create the query item, and put it into the data-base.
+    new_query = QueryModel(
+        query_text=request.query_text,
+        answer_text=query_response.response_text,
+        sources=query_response.sources,
+        is_complete=True,
+    )
+    new_query.put_item()
+    return new_query
+```
+Create a new file called query_model.py (see file for code).
+
+Once the code is updated, re-deploy using:
+```pwsh
+cdk deploy
+```
+
+Go to the AWS Dynamo DB console to get your updated TABLE_NAME.
+
+If you want to test this locally from your Docker Image, don't forget to update your .env file with the TABLE_NAME=...
+
+## ASYNC Execution
+
+Right now, our app uses AI which can take quite a long time to execute. It might be 5-15 seconds depending on the query size. If we extend the app later, this could get much worse (30s or more). This is a big problem since API Endpoint has max 30s timeout and high latency is risky for HTTP as it leaves your connection vulnerable to interuption or network outages. Not to mention probably a very bad user experience. The best solution here is to make our API asynchronous. It doesn't make the overall use of the application faster but it does make it more responsive and we don't have to maintain an open connection the whole time.
+
+To implement this we'll have to split our Lambda into two separate functions. The user will only interact with our API function and that will trigger an asynchronous execution of the worker function in the background. 
+
+<img width=700 src="">
+
+Since the 30s timeout is a property of the API endpoint itself and not the Lambda funciton we can now configure the worker function to have a much longer timeout (up to 15 minutes). This is very good if we have a large tak for the Worker to perform.
+
+For simplicity in this app, I have only modified the entry point of the function. 
+
+Start by adding a new handler function in a new file called app_work_handler.py (see code).
+
+Update the app_api_handler.py function:
+```py
+import os
+import boto3
+import json
+
+WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
+
+    # Create the query item, and put it into the data-base.
+    new_query = QueryModel(query_text=request.query_text)
+
+    if WORKER_LAMBDA_NAME:
+        # Make an async call to the worker (the RAG/AI app).
+        new_query.put_item()
+        invoke_worker(new_query)
+    else:
+        # Make a synchronous call to the worker (the RAG/AI app).
+        query_response = query_rag(request.query_text)
+        new_query.answer_text = query_response.response_text
+        new_query.sources = query_response.sources
+        new_query.is_complete = True
+        new_query.put_item()
+
+def invoke_worker(query: QueryModel):
+    # Initialize the Lambda client
+    lambda_client = boto3.client("lambda")
+
+    # Get the QueryModel as a dictionary.
+    payload = query.model_dump()
+
+    # Invoke another Lambda function asynchronously
+    response = lambda_client.invoke(
+        FunctionName=WORKER_LAMBDA_NAME,
+        InvocationType="Event",
+        Payload=json.dumps(payload),
+    )
+
+    print(f"✅ Worker Lambda invoked: {response}")
+```
+
+and update the rag-cdk-infra-stack.ts file:
+```py
+    const workerImageCode = DockerImageCode.fromImageAsset("../image", {
+      cmd: ["app_work_handler.handler"],
+      buildArgs: {
+        platform: "linux/amd64", // Needs x86_64 architecture for pysqlite3-binary.
+      },
+    });
+    const workerFunction = new DockerImageFunction(this, "RagWorkerFunction", {
+      code: workerImageCode,
+      memorySize: 512, // Increase this if you need more memory.
+      timeout: cdk.Duration.seconds(60), // Increase this if you need more time.
+      architecture: Architecture.X86_64, // Needs to be the same as the image.
+      environment: {
+        TABLE_NAME: ragQueryTable.tableName,
+      },
+    });
+
+        WORKER_LAMBDA_NAME: workerFunction.functionName,
+
+    ragQueryTable.grantReadWriteData(workerFunction);
+
+    workerFunction.grantInvoke(apiFunction);
+    workerFunction.role?.addManagedPolicy(
+```
+Run:
+```py
+cdk deploy
+```
+The /submit-query API endpoint won't generate an answer right away, but it will give oyu a query_id. Copy this id and paste it in the /get_query id. This will allow us to get an answer faster than waiting for the response to generage just in the submit_query API.
+
+### Testing Locally
 
 After running the Docker container on localhost, you can access an interactive API page locally to test it: `http://0.0.0.0:8000/docs`.
 
@@ -209,27 +399,14 @@ curl -X 'POST' \
 
 Once you have a server running locally on `localhost:8000`, you can run the unit tests in `test/` from the root folder. You'll need to have `pytest` installed (`pip install pytest`).
 
-```sh
+```pwsh
 pytest  # Run all tests
 ```
 
-```sh
+```pwsh
 pytest -k test_can_submit_query -s  # Run a specific test. Print output.
 ```
 
-## Deploy to AWS
-
-I have put all the AWS CDK files into `rag-cdk-infra/`. Go into the folder and install the Node dependencies.
-
-```sh
-npm install
-```
-
-Then run this command to deploy it (assuming you have AWS CLI already set up, and AWS CDK already bootstrapped). I recommend deploying to `us-east-1` to start with (since all the AI models are there).
-
-```sh
-cdk deploy
-```
 
 ## Front End
 
