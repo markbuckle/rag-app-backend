@@ -19,6 +19,13 @@ def index():
     return {"Hello": "World"}
 
 
+# read and write information from the table
+@app.get("/get_query")
+def get_query_endpoint(query_id: str) -> QueryModel:
+    query = QueryModel.get_item(query_id)
+    return query
+
+
 @app.post("/submit_query")
 # def submit_query_endpoint(request: SubmitQueryRequest) -> QueryResponse:
 def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
@@ -33,13 +40,6 @@ def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
     )
     new_query.put_item()
     return new_query
-
-
-# read and write information from the table
-@app.get("/get_query")
-def get_query_endpoint(query_id: str) -> QueryModel:
-    query = QueryModel.get_item(query_id)
-    return query
 
 
 if __name__ == "__main__":

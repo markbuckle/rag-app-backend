@@ -1,9 +1,9 @@
 import os
 import time
 import uuid
-import boto3
 from pydantic import BaseModel, Field
 from typing import List, Optional
+import boto3
 from botocore.exceptions import ClientError
 
 # GET the table name from the ENV
@@ -35,7 +35,7 @@ class QueryModel(BaseModel):
             raise e
 
     def as_ddb_item(self):
-        item = {k: v for k, v in self.dict().items() if v is not None}
+        item = {k: v for k, v in self.model_dump().items() if v is not None}
         return item
 
     # loads data from the table
