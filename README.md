@@ -302,7 +302,7 @@ Right now, our app uses AI which can take quite a long time to execute. It might
 
 To implement this we'll have to split our Lambda into two separate functions. The user will only interact with our API function and that will trigger an asynchronous execution of the worker function in the background. 
 
-<img width=700 src="https://github.com/markbuckle/AiAppDeploy/blob/main/asyncfunction.png?raw=true">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/asyncfunction.png?raw=true">
 
 Since the 30s timeout is a property of the API endpoint itself and not the Lambda funciton we can now configure the worker function to have a much longer timeout (up to 15 minutes). This is very good if we have a large tak for the Worker to perform.
 
