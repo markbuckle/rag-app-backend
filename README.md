@@ -469,34 +469,42 @@ You can run the above command direct or use the command script in the package.js
 }
 ```
 
-You can also add it under a script called generate API client:
+Generate the client into `src/api-client/` first.
 ```pwsh
 npm run generate-api-client
 ```
 
-To use it, it will fetch the OpenAPI schema from `http://0.0.0.0:8000` (assuming it's a FastAPI server and makes it available). And generate a TypeScript client to `src/api-client`.
+An important question is when should you run the command (above)? The answer is whenever the API changes. 
 
-We'll need to make sure it's generated each time.
+### API Client / User ID Utils
 
-### Generate API Client
+Next will want to set up some utility functions for the API client and for the user session management. This will enable us to initialize our API client and it will also create a fake unique user id for every new browser session. This way I can test my app without having to have a user authentication process in place.
 
-Generate the client into `src/api-client/` first.
+In your source folder create a /lib subfolder.
 
-```sh
-npm run generate-api-client
+To generate a new and unique package id, first install uuid:
+```pwsh
+npm install uuid
 ```
 
-### Component Library
+### View Query Page
 
-Using shadcn/ui. I don't think you need to run this, it's already part of the project via Git — but here's what I had to run, just for reference.
+Add a page to display detailed information about individual queries. It will show the question, reponse and sources. 
 
-```sh
+Under /src/app create a new directory called viewQuery and create a new file called page.tsx
+
+### Rendering Components 
+
+[shadcn/ui](https://ui.shadcn.com/examples/cards) has nice pre-configured components.
+
+Run:
+```pwsh
 npx shadcn-ui@latest init
 ```
 
 Then install each component separately.
 
-```sh
+```pwsh
 npx shadcn-ui@latest add button
 npx shadcn-ui@latest add textarea
 npx shadcn-ui@latest add card
