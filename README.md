@@ -418,18 +418,60 @@ We need these CORS headers to make it work with our frontend.
 
 ## Front End
 
+### Why NextJS Frontend instead of a Python Framework like Flask or Django?
+
+First, I want to be able to host this as a static page, which is not possible with either Python framework right now. 
+
+Secondly, NextJS or any JavaScript frontend framework is far ahead of Python frameworks in terms of features or developer experience, it's likely easier to learn JS than to try and close those gaps using Python frameworks. 
+
+### Create a NextJS Project
+Inside the root directory, run:
+```pwsh
+npx create-next-app@latest
+```
+Here's what I picked for the questions:
+<img width=600 src="">
+
+Go to the new project folder:
+```pwsh
+cd rag-app-frontend
+```
+Then run:
+```pwsh
+npm run dev
+```
+
 ### Install Tools to Generate API Client
 
-```sh
+We now have to create an API client to interact with our FastAPI backend from our NextJS frontend. We can automate this process using the openAPI schema provided by FastAPI.
+
+Go to the /openapi.json endpoint of your API server.
+
+<img width=500 src="">
+
+We're going to use this but first we need to install the open API generator CLI tool:
+```pwsh
 npm install @openapitools/openapi-generator-cli -g
 ```
 
-There is a command script in the package.json file to generate the client library for the API.
+Once installed you'll be able to use this command in your terminal to generate an actual TypeScript client by just point this tool at your JSON schema:
+```pwsh
+openapi-generator-cli generate -i https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/openapi.json -g typescript-fetch -o src/api-client
+```
+
+You can run the above command direct or use the command script in the package.json file to generate the client library for the API:
 
 ```json
 {
-  "generate-api-client": "openapi-generator-cli generate -i http://0.0.0.0:8000/openapi.json -g typescript-fetch -o src/api-client"
+    "scripts": {
+        "generate-api-client": "openapi-generator-cli generate -i http://{yourAPIendpoint}/openapi.json -g typescript-fetch -o src/api-client"
+    }
 }
+```
+
+You can also add it under a script called generate API client:
+```pwsh
+npm run generate-api-client
 ```
 
 To use it, it will fetch the OpenAPI schema from `http://0.0.0.0:8000` (assuming it's a FastAPI server and makes it available). And generate a TypeScript client to `src/api-client`.
