@@ -31,6 +31,10 @@ export interface GetQueryEndpointGetQueryGetRequest {
     queryId: string;
 }
 
+export interface ListQueryEndpointListQueryGetRequest {
+    userId: string;
+}
+
 export interface SubmitQueryEndpointSubmitQueryPostRequest {
     submitQueryRequest: SubmitQueryRequest;
 }
@@ -71,6 +75,12 @@ export class DefaultApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error response: ${errorText}`);
+            throw new runtime.ResponseError(response, `Response returned an error code: ${response.status}`);
+        }
+
         return new runtime.JSONApiResponse(response, (jsonValue) => QueryModelFromJSON(jsonValue));
     }
 
@@ -102,6 +112,12 @@ export class DefaultApi extends runtime.BaseAPI {
             query: queryParameters,
         }, initOverrides);
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error response: ${errorText}`);
+            throw new runtime.ResponseError(response, `Response returned an error code: ${response.status}`);
+        }
+
         if (this.isJsonMime(response.headers.get('content-type'))) {
             return new runtime.JSONApiResponse<any>(response);
         } else {
@@ -114,6 +130,49 @@ export class DefaultApi extends runtime.BaseAPI {
      */
     async indexGet(initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<any> {
         const response = await this.indexGetRaw(initOverrides);
+        return await response.value();
+    }
+
+    /**
+     * List Query Endpoint
+     */
+    async listQueryEndpointListQueryGetRaw(requestParameters: ListQueryEndpointListQueryGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<runtime.ApiResponse<Array<QueryModel>>> {
+        if (requestParameters['userId'] == null) {
+            throw new runtime.RequiredError(
+                'userId',
+                'Required parameter "userId" was null or undefined when calling listQueryEndpointListQueryGet().'
+            );
+        }
+
+        const queryParameters: any = {};
+
+        if (requestParameters['userId'] != null) {
+            queryParameters['user_id'] = requestParameters['userId'];
+        }
+
+        const headerParameters: runtime.HTTPHeaders = {};
+
+        const response = await this.request({
+            path: `/list_query`,
+            method: 'GET',
+            headers: headerParameters,
+            query: queryParameters,
+        }, initOverrides);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error response: ${errorText}`);
+            throw new runtime.ResponseError(response, `Response returned an error code: ${response.status}`);
+        }
+
+        return new runtime.JSONApiResponse(response, (jsonValue) => jsonValue.map(QueryModelFromJSON));
+    }
+
+    /**
+     * List Query Endpoint
+     */
+    async listQueryEndpointListQueryGet(requestParameters: ListQueryEndpointListQueryGetRequest, initOverrides?: RequestInit | runtime.InitOverrideFunction): Promise<Array<QueryModel>> {
+        const response = await this.listQueryEndpointListQueryGetRaw(requestParameters, initOverrides);
         return await response.value();
     }
 
@@ -146,6 +205,12 @@ export class DefaultApi extends runtime.BaseAPI {
             query: queryParameters,
             body: SubmitQueryRequestToJSON(requestParameters['submitQueryRequest']),
         }, initOverrides);
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error(`Error response: ${errorText}`);
+            throw new runtime.ResponseError(response, `Response returned an error code: ${response.status}`);
+        }
 
         return new runtime.JSONApiResponse(response, (jsonValue) => QueryModelFromJSON(jsonValue));
     }
