@@ -3,7 +3,7 @@ import uuid
 import requests
 
 # Update this with whatever the endpoint is for your API.
-ENDPOINT = "http://localhost:8000"
+ENDPOINT = "https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/"
 
 SUBMIT_QUERY_ENDPOINT = f"{ENDPOINT}/submit_query"
 GET_QUERY_ENDPOINT = f"{ENDPOINT}/get_query"
@@ -23,7 +23,7 @@ def test_fail_on_large_query():
 
 
 def test_can_submit_query():
-    query_text = "How much does a website for a Salon cost?"
+    query_text = "What can I do to improve neuro-plasticity?"
     response = requests.post(
         SUBMIT_QUERY_ENDPOINT,
         json={"query_text": query_text},
