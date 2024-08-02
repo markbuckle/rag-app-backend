@@ -430,7 +430,7 @@ Inside the root directory, run:
 npx create-next-app@latest
 ```
 Here's what I picked for the questions:
-<img width=600 src="">
+<img width=600 src="https://github.com/user-attachments/assets/57137c67-9f83-4c6e-ae3c-1132a3112760">
 
 Go to the new project folder:
 ```pwsh
