@@ -447,7 +447,7 @@ We now have to create an API client to interact with our FastAPI backend from ou
 
 Go to the /openapi.json endpoint of your API server.
 
-<img width=500 src="">
+<img width=500 src="https://github.com/markbuckle/AiAppDeploy/blob/main/openapiendpoint.png?raw=true">
 
 We're going to use this but first we need to install the open API generator CLI tool:
 ```pwsh
