@@ -158,39 +158,9 @@ cd rag-cdk-infra
 ```pwsh
 cdk init app --language=typescript
 ```
-In our code we'll need to create a reference to an image. The code below will bring us to the image folder we were using earlier:
-```ts
-const apiImageCode = DockerImageCode.fromImageAsset("../image", {
-      cmd: ["app_api_handler.handler"],
-      buildArgs: {
-        platform: "linux/amd64",
-      },
-    });
-```
-Create a Lambda function using the image. You can adjust the memorySize and timeout settings to your liking:
-```ts
-    const apiFunction = new DockerImageFunction(this, "ApiFunc", {
-      code: apiImageCode,
-      memorySize: 256,
-      timeout: cdk.Duration.seconds(30),
-      architecture: Architecture.X86_64,
-    });
-```
-Grant our function permissions to use Amazon Bedrock:
-```ts
-    apiFunction.role?.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
-    );
-```
-Create a function URL so that we can access the function from the internet via a public endpoint:
-```ts
-    const functionUrl = apiFunction.addFunctionUrl({
-      authType: FunctionUrlAuthType.NONE,
-    });
-    new cdk.CfnOutput(this, "FunctionUrl", {
-      value: functionUrl.url,
-    });
-```
+
+Update code. 
+
 Go to your terminal, hop in the /rag-cdk-infra folder and make sure you are using an updated AWS CDK CLI:
 ```pwsh
 npm install -g aws-cdk@latest
@@ -208,44 +178,9 @@ https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
 ### Save and Load Results
 
 To save query responses to a database, we'll need to add a datbase table to our infrastructure and modify our code to use that table. To achieve this we'll use DynamoDB. 
-Update the rag-cdk-infra-stack.ts code with the following:
 
-```py
-import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
+Update the rag-cdk-infra-stack.ts code.
 
-const ragQueryTable = new Table(this, "RagQueryTable", {
-      partitionKey: { name: "query_id", type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-});
-
-environment: {
-    TABLE_NAME: ragQueryTable.tableName,
-},
-
-ragQueryTable.grantReadWriteData(apiFunction);
-```
-Update app_api_handler.py with the following:
-```py
-from query_model import QueryModel
-from rag_app.query_rag import query_rag
-
-@app.get("/get_query")
-def get_query_endpoint(query_id: str) -> QueryModel:
-    query = QueryModel.get_item(query_id)
-    return query
-
-def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
-
-    # Create the query item, and put it into the data-base.
-    new_query = QueryModel(
-        query_text=request.query_text,
-        answer_text=query_response.response_text,
-        sources=query_response.sources,
-        is_complete=True,
-    )
-    new_query.put_item()
-    return new_query
-```
 Create a new file called query_model.py (see file for code).
 
 Once the code is updated, re-deploy using:
@@ -271,71 +206,8 @@ For simplicity in this app, I have only modified the entry point of the function
 
 Start by adding a new handler function in a new file called app_work_handler.py (see code).
 
-Update the app_api_handler.py function:
-```py
-import os
-import boto3
-import json
+Update the app_api_handler.py function and the rag-cdk-infra-stack.ts file.
 
-WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
-
-    # Create the query item, and put it into the data-base.
-    new_query = QueryModel(query_text=request.query_text)
-
-    if WORKER_LAMBDA_NAME:
-        # Make an async call to the worker (the RAG/AI app).
-        new_query.put_item()
-        invoke_worker(new_query)
-    else:
-        # Make a synchronous call to the worker (the RAG/AI app).
-        query_response = query_rag(request.query_text)
-        new_query.answer_text = query_response.response_text
-        new_query.sources = query_response.sources
-        new_query.is_complete = True
-        new_query.put_item()
-
-def invoke_worker(query: QueryModel):
-    # Initialize the Lambda client
-    lambda_client = boto3.client("lambda")
-
-    # Get the QueryModel as a dictionary.
-    payload = query.model_dump()
-
-    # Invoke another Lambda function asynchronously
-    response = lambda_client.invoke(
-        FunctionName=WORKER_LAMBDA_NAME,
-        InvocationType="Event",
-        Payload=json.dumps(payload),
-    )
-
-    print(f"✅ Worker Lambda invoked: {response}")
-```
-
-and update the rag-cdk-infra-stack.ts file:
-```py
-    const workerImageCode = DockerImageCode.fromImageAsset("../image", {
-      cmd: ["app_work_handler.handler"],
-      buildArgs: {
-        platform: "linux/amd64", // Needs x86_64 architecture for pysqlite3-binary.
-      },
-    });
-    const workerFunction = new DockerImageFunction(this, "RagWorkerFunction", {
-      code: workerImageCode,
-      memorySize: 512, // Increase this if you need more memory.
-      timeout: cdk.Duration.seconds(60), // Increase this if you need more time.
-      architecture: Architecture.X86_64, // Needs to be the same as the image.
-      environment: {
-        TABLE_NAME: ragQueryTable.tableName,
-      },
-    });
-
-        WORKER_LAMBDA_NAME: workerFunction.functionName,
-
-    ragQueryTable.grantReadWriteData(workerFunction);
-
-    workerFunction.grantInvoke(apiFunction);
-    workerFunction.role?.addManagedPolicy(
-```
 Run:
 ```py
 cdk deploy
