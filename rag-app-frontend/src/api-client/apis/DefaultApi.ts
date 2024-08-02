@@ -12,7 +12,6 @@
  * Do not edit the class manually.
  */
 
-
 import * as runtime from '../runtime';
 import type {
   HTTPValidationError,
@@ -60,8 +59,13 @@ export class DefaultApi extends runtime.BaseAPI {
 
         const headerParameters: runtime.HTTPHeaders = {};
 
+        // Add CORS headers
+        headerParameters['Access-Control-Allow-Origin'] = '*';
+        headerParameters['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+        headerParameters['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
+
         const response = await this.request({
-            path: `/get_query`,
+            path: `/api/get_query`,
             method: 'GET',
             headers: headerParameters,
             query: queryParameters,
@@ -85,6 +89,11 @@ export class DefaultApi extends runtime.BaseAPI {
         const queryParameters: any = {};
 
         const headerParameters: runtime.HTTPHeaders = {};
+
+        // Add CORS headers
+        headerParameters['Access-Control-Allow-Origin'] = '*';
+        headerParameters['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+        headerParameters['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
 
         const response = await this.request({
             path: `/`,
@@ -124,6 +133,11 @@ export class DefaultApi extends runtime.BaseAPI {
         const headerParameters: runtime.HTTPHeaders = {};
 
         headerParameters['Content-Type'] = 'application/json';
+
+        // Add CORS headers
+        headerParameters['Access-Control-Allow-Origin'] = '*';
+        headerParameters['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS';
+        headerParameters['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept';
 
         const response = await this.request({
             path: `/submit_query`,
