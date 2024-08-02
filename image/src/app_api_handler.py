@@ -11,7 +11,7 @@ from rag_app.query_rag import query_rag, QueryResponse
 from query_model import QueryModel
 
 WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
-CHARACTER_LIMIT = 2000
+CHARACTER_LIMIT = 1000
 
 app = FastAPI()
 
