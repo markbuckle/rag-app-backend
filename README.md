@@ -510,3 +510,7 @@ npx shadcn-ui@latest add textarea
 npx shadcn-ui@latest add card
 npx shadcn-ui@latest add skeleton
 ```
+
+### Query Submission Form
+
+Create a form component to allow users to create new queries. This form will capture user input and send it to our API for processing. 
