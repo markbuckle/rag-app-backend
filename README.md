@@ -173,7 +173,6 @@ Finally, deploy your app using:
 ```pwsh
 cdk deploy
 ```
-https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
 
 ### Save and Load Results
 
@@ -336,3 +335,19 @@ npx shadcn-ui@latest add skeleton
 ### Query Submission Form
 
 Create a form component to allow users to create new queries. This form will capture user input and send it to our API for processing. 
+
+### Query List Component
+
+Build a list of our most recent queries that will link to each query page.
+
+### Final Layout
+
+Update the layout component so that theres a header, body and footer. This is mostly just styling and structure coding updates. 
+
+### Get a public API
+
+I used Amazon Route 53 Hosted Zones to host a public url domain.
+
+Link: 
+
+https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
