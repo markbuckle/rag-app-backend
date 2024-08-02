@@ -37,14 +37,7 @@ python rag_app\query_rag.py
 
 ### Create FastAPI Wrapper
 
-Test locally using:
-```py
-if __name__ == "__main__":
-    port = 8000
-    print(f"Running the FastAPI server on port {port}.")
-    uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port)
-```
-Run:
+Once code is setup run:
 ```pwsh
 python app_api_handler.py
 ```
