@@ -37,35 +37,7 @@ python rag_app\query_rag.py
 
 ### Create FastAPI Wrapper
 
-Import FastAPI and create a new FastAPI app:
-```py
-from fastapi import FastAPI
-from rag_app.query_rag import query_rag, QueryResponse
-
-app= FastAPI()
-```
-Create a new API route to handle the query and generate a response:
-```py
-@app.post("/submit_query")
-def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
-    # Create the query item, and put it into the data-base.
-    new_query = QueryModel(query_text=request.query_text)
-```
-Test locally using:
-```py
-if __name__ == "__main__":
-    port = 8000
-    print(f"Running the FastAPI server on port {port}.")
-    uvicorn.run("app_api_handler:app", host="0.0.0.0", port=port)
-```
-To make this work with AWS Lambda, wrap the FastAPI app with the handler adapter library function. This turns it into a lambda compatible handler:
-```py
-from mangum import Mangum
-
-app = FastAPI()
-handler = Mangum(app)
-```
-Run:
+Once code is setup run:
 ```pwsh
 python app_api_handler.py
 ```
@@ -92,30 +64,7 @@ python populate_database.py --reset
 
 If you see the /chroma folder within your /data folder you should be good to go.
 
-Update your dockerfile code:
-```txt
-FROM public.ecr.aws/lambda/python:3.12
-
-# Copy requirements.txt
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
-
-# Required to make SQLlite3 work for Chroma.
-RUN pip install pysqlite3-binary
-
-# Install the specified packages
-RUN pip install -r requirements.txt --upgrade
-
-# For local testing.
-EXPOSE 8000
-
-# Set IS_USING_IMAGE_RUNTIME Environment Variable
-ENV IS_USING_IMAGE_RUNTIME=True
-
-# Copy all files in ./src
-COPY src/* ${LAMBDA_TASK_ROOT}
-COPY src/rag_app ${LAMBDA_TASK_ROOT}/rag_app
-COPY src/data/chroma ${LAMBDA_TASK_ROOT}/data/chroma
-```
+Update your Dockerfile code.
 
 ### Configure AWS
 
@@ -209,39 +158,9 @@ cd rag-cdk-infra
 ```pwsh
 cdk init app --language=typescript
 ```
-In our code we'll need to create a reference to an image. The code below will bring us to the image folder we were using earlier:
-```ts
-const apiImageCode = DockerImageCode.fromImageAsset("../image", {
-      cmd: ["app_api_handler.handler"],
-      buildArgs: {
-        platform: "linux/amd64",
-      },
-    });
-```
-Create a Lambda function using the image. You can adjust the memorySize and timeout settings to your liking:
-```ts
-    const apiFunction = new DockerImageFunction(this, "ApiFunc", {
-      code: apiImageCode,
-      memorySize: 256,
-      timeout: cdk.Duration.seconds(30),
-      architecture: Architecture.X86_64,
-    });
-```
-Grant our function permissions to use Amazon Bedrock:
-```ts
-    apiFunction.role?.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonBedrockFullAccess")
-    );
-```
-Create a function URL so that we can access the function from the internet via a public endpoint:
-```ts
-    const functionUrl = apiFunction.addFunctionUrl({
-      authType: FunctionUrlAuthType.NONE,
-    });
-    new cdk.CfnOutput(this, "FunctionUrl", {
-      value: functionUrl.url,
-    });
-```
+
+Update code. 
+
 Go to your terminal, hop in the /rag-cdk-infra folder and make sure you are using an updated AWS CDK CLI:
 ```pwsh
 npm install -g aws-cdk@latest
@@ -254,49 +173,13 @@ Finally, deploy your app using:
 ```pwsh
 cdk deploy
 ```
-https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
 
 ### Save and Load Results
 
 To save query responses to a database, we'll need to add a datbase table to our infrastructure and modify our code to use that table. To achieve this we'll use DynamoDB. 
-Update the rag-cdk-infra-stack.ts code with the following:
 
-```py
-import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
+Update the rag-cdk-infra-stack.ts code.
 
-const ragQueryTable = new Table(this, "RagQueryTable", {
-      partitionKey: { name: "query_id", type: AttributeType.STRING },
-      billingMode: BillingMode.PAY_PER_REQUEST,
-});
-
-environment: {
-    TABLE_NAME: ragQueryTable.tableName,
-},
-
-ragQueryTable.grantReadWriteData(apiFunction);
-```
-Update app_api_handler.py with the following:
-```py
-from query_model import QueryModel
-from rag_app.query_rag import query_rag
-
-@app.get("/get_query")
-def get_query_endpoint(query_id: str) -> QueryModel:
-    query = QueryModel.get_item(query_id)
-    return query
-
-def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
-
-    # Create the query item, and put it into the data-base.
-    new_query = QueryModel(
-        query_text=request.query_text,
-        answer_text=query_response.response_text,
-        sources=query_response.sources,
-        is_complete=True,
-    )
-    new_query.put_item()
-    return new_query
-```
 Create a new file called query_model.py (see file for code).
 
 Once the code is updated, re-deploy using:
@@ -322,71 +205,8 @@ For simplicity in this app, I have only modified the entry point of the function
 
 Start by adding a new handler function in a new file called app_work_handler.py (see code).
 
-Update the app_api_handler.py function:
-```py
-import os
-import boto3
-import json
+Update the app_api_handler.py function and the rag-cdk-infra-stack.ts file.
 
-WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
-
-    # Create the query item, and put it into the data-base.
-    new_query = QueryModel(query_text=request.query_text)
-
-    if WORKER_LAMBDA_NAME:
-        # Make an async call to the worker (the RAG/AI app).
-        new_query.put_item()
-        invoke_worker(new_query)
-    else:
-        # Make a synchronous call to the worker (the RAG/AI app).
-        query_response = query_rag(request.query_text)
-        new_query.answer_text = query_response.response_text
-        new_query.sources = query_response.sources
-        new_query.is_complete = True
-        new_query.put_item()
-
-def invoke_worker(query: QueryModel):
-    # Initialize the Lambda client
-    lambda_client = boto3.client("lambda")
-
-    # Get the QueryModel as a dictionary.
-    payload = query.model_dump()
-
-    # Invoke another Lambda function asynchronously
-    response = lambda_client.invoke(
-        FunctionName=WORKER_LAMBDA_NAME,
-        InvocationType="Event",
-        Payload=json.dumps(payload),
-    )
-
-    print(f"✅ Worker Lambda invoked: {response}")
-```
-
-and update the rag-cdk-infra-stack.ts file:
-```py
-    const workerImageCode = DockerImageCode.fromImageAsset("../image", {
-      cmd: ["app_work_handler.handler"],
-      buildArgs: {
-        platform: "linux/amd64", // Needs x86_64 architecture for pysqlite3-binary.
-      },
-    });
-    const workerFunction = new DockerImageFunction(this, "RagWorkerFunction", {
-      code: workerImageCode,
-      memorySize: 512, // Increase this if you need more memory.
-      timeout: cdk.Duration.seconds(60), // Increase this if you need more time.
-      architecture: Architecture.X86_64, // Needs to be the same as the image.
-      environment: {
-        TABLE_NAME: ragQueryTable.tableName,
-      },
-    });
-
-        WORKER_LAMBDA_NAME: workerFunction.functionName,
-
-    ragQueryTable.grantReadWriteData(workerFunction);
-
-    workerFunction.grantInvoke(apiFunction);
-    workerFunction.role?.addManagedPolicy(
-```
 Run:
 ```py
 cdk deploy
@@ -430,7 +250,8 @@ Inside the root directory, run:
 npx create-next-app@latest
 ```
 Here's what I picked for the questions:
-<img width=600 src="">
+
+<img width=600 src="https://github.com/user-attachments/assets/57137c67-9f83-4c6e-ae3c-1132a3112760">
 
 Go to the new project folder:
 ```pwsh
@@ -447,7 +268,7 @@ We now have to create an API client to interact with our FastAPI backend from ou
 
 Go to the /openapi.json endpoint of your API server.
 
-<img width=500 src="">
+<img width=500 src="https://github.com/markbuckle/AiAppDeploy/blob/main/openapiendpoint.png?raw=true">
 
 We're going to use this but first we need to install the open API generator CLI tool:
 ```pwsh
@@ -510,3 +331,23 @@ npx shadcn-ui@latest add textarea
 npx shadcn-ui@latest add card
 npx shadcn-ui@latest add skeleton
 ```
+
+### Query Submission Form
+
+Create a form component to allow users to create new queries. This form will capture user input and send it to our API for processing. 
+
+### Query List Component
+
+Build a list of our most recent queries that will link to each query page.
+
+### Final Layout
+
+Update the layout component so that theres a header, body and footer. This is mostly just styling and structure coding updates. 
+
+### Get a public API
+
+I used Amazon Route 53 Hosted Zones to host a public url domain.
+
+Link: 
+
+https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
