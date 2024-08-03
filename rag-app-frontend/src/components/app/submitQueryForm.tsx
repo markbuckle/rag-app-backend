@@ -47,7 +47,7 @@ export default function SubmitQueryForm() {
     response.then((data) => {
       console.log(data);
       // navigate to the viewQuery page and add queryid to the url parameter
-      router.push(`/viewQuery?queryId=${data.queryId}`);
+      router.push(`/viewQuery?query_id=${data.queryId}`);
     });
   };
 

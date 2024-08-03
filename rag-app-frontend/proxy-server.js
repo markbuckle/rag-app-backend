@@ -4,7 +4,7 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 const app = express();
 
 app.use('/api', createProxyMiddleware({
-  target: 'https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/',
+  target: 'http://localhost:3000',
   changeOrigin: true,
   pathRewrite: {
     '^/api': '', // Remove /api prefix when forwarding to the target

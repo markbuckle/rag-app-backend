@@ -42,24 +42,24 @@ function InnerLayout({
       <footer className="w-full max-w-3xl text-sm text-slate-400 mt-4">
         <div className="text-center space-y-2">
           <div className="flex items-center gap-2 justify-center sm:flex-row flex-col">
-            <Link href="https://github.com/pixegami/deploy-rag-to-aws/blob/main/image/src/data/source/galaxy-design-client-guide.pdf">
+            <Link href="https://github.com/markbuckle/AiAppDeploy/blob/main/image/src/data/source">
               <div className="flex hover:underline hover:text-slate-700">
                 <FileText className="mr-1 h-4 w-4 my-auto" />
                 Source PDF
               </div>
             </Link>
-            <Link href="https://github.com/pixegami/deploy-rag-to-aws">
+            <Link href="https://github.com/markbuckle/AiAppDeploy">
               <div className="flex hover:underline hover:text-slate-700">
                 <Code className="mr-1 h-4 w-4 my-auto" />
                 Project Source Code
               </div>
             </Link>
-            <Link href="https://www.youtube.com/channel/UCuxhTSKtnMJizinblLs9xOA">
+            {/* <Link href="https://www.youtube.com/channel/UCuxhTSKtnMJizinblLs9xOA">
               <div className="flex hover:underline hover:text-slate-700">
                 <Video className="mr-1 h-4 w-4 my-auto" />
                 Watch Video Tutorial
               </div>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </footer>

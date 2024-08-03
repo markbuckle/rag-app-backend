@@ -30,7 +30,7 @@ export interface QueryModel {
      * @type {string}
      * @memberof QueryModel
      */
-    userId?: string;
+    userId: string;
     /**
      * 
      * @type {number}
@@ -73,6 +73,7 @@ export interface QueryModel {
  * Check if a given object implements the QueryModel interface.
  */
 export function instanceOfQueryModel(value: object): value is QueryModel {
+    if (!('userId' in value) || value['userId'] === undefined) return false;
     if (!('queryText' in value) || value['queryText'] === undefined) return false;
     return true;
 }
@@ -88,7 +89,7 @@ export function QueryModelFromJSONTyped(json: any, ignoreDiscriminator: boolean)
     return {
         
         'queryId': json['query_id'] == null ? undefined : json['query_id'],
-        'userId': json['user_id'] == null ? undefined : json['user_id'],
+        'userId': json['user_id'],
         'createTime': json['create_time'] == null ? undefined : json['create_time'],
         'ttl': json['ttl'] == null ? undefined : json['ttl'],
         'queryText': json['query_text'],

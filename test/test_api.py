@@ -3,7 +3,7 @@ import uuid
 import requests
 
 # Update this with whatever the endpoint is for your API.
-ENDPOINT = "https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/"
+ENDPOINT = "https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws"
 
 SUBMIT_QUERY_ENDPOINT = f"{ENDPOINT}/submit_query"
 GET_QUERY_ENDPOINT = f"{ENDPOINT}/get_query"
