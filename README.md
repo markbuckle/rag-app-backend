@@ -10,9 +10,7 @@ Large Language Models (LLM)s are models for general-purpose language understandi
 
 RAG = LLM + Knowledge base
 
-RAGs allow for models to have specific infomation pertaining to certain subjects or use cases. 
-
-This RAG app chatbot will be able to use specific podcast PDFs as its datasource.
+RAGs allow for models to have specific infomation pertaining to certain subjects or use cases. This RAG app chatbot will be able to use specific podcast PDFs as its datasource.
 
 ## Getting Started:
 
