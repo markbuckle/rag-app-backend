@@ -350,4 +350,4 @@ I used Amazon Route 53 Hosted Zones to host a public url domain.
 
 Link: 
 
-https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
+https://podcastaichatbot.website/
