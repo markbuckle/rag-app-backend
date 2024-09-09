@@ -17,7 +17,7 @@ Answer the question based on the above context: {question}
 Provide a detailed and comprehensive response. Rephrase and format the response to make it clear and engaging.
 """
 
-BEDROCK_MODEL_ID = "amazon.titan-text-premier-v1:0"
+BEDROCK_MODEL_ID = "amazon.titan-text-express-v1"
 
 
 @dataclass
