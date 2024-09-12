@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./image/src",
+        "./image/src/rag_app"
+    ]
+}
