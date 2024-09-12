@@ -1,24 +1,26 @@
-# Deploy RAG/AI App To AWS
+# AI PDF(podcast) Chatbot
 
-## Overview
+*** **Note** that this repo was copied and pasted from my AiAppDeploy repo. All of the commits to develop the original app is in the AiAppDeploy repo. The purpose of the ai-pdf-chatbot repo is to reduce latency of the Lambda function, API call, and model request.
 
-AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happening quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
-
-<<<<<<< HEAD
-## RAG App
-
-Insert Retrieval Augmented Generation apps description 
-
-This app chatbot will be able to use the PDFs as a datasource.
-=======
-## Why RAG?
+## RAG Apps
 
 Large Language Models (LLM)s are models for general-purpose language understanding and generation. The problem with LLMs is that they lack information about your specific use case / users. This is where Retrieval Augmented Generation (RAG) comes into play. 
 
 RAG = LLM + Knowledge base
 
 RAGs allow for models to have specific infomation pertaining to certain subjects or use cases. This RAG app chatbot will be able to use specific podcast PDFs as its datasource.
->>>>>>> origin/main
+
+## Architecture Overview
+
+The AI services used for the embeddings and chat is cloud-based already (AWS bedrock). Aside from that, the app runs locally and the database is saved locally. An API endpoint is a FastAPI server that wraps the app and lets us call it using API routes.
+
+For the actual hosting I used AWS Lambda to deploy this as a serverless function. Lambda is essentially a virtual server that only starts up when we send a request to it then it shuts down by itself. Thus it is extremely cheap and scalable. Lambda doesn't natively understand FastAPI's interface so I added a handler adapter to fix that.
+
+This app uses a lot of different platform specific binanaries in its dependencies. This makes this app sensitive to things like Windows/OS version, Python version, and CPU architecture. Often such apps can run successfully locally, but break after you've deployed it and try to run it in the cloud. To make sure that anyone can run this app anywhere, I placed the App itself, handler, API, and database into a Docker container image. This creates a consistent virtual environment. The Lambda function uses the image and the API endpoint allows users to access it. The AI component is external to all of this.
+
+To create all of the Cloud infrastructure, I used AWS CDK to allow me to deploy it to my AWS account. This allows one to access this app via a public API endpoint.
+
+<img maxwidth=1000 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
 
 ## Getting Started:
 
