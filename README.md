@@ -1,7 +1,5 @@
 # AI PDF(podcast) Chatbot
 
-*** **Note** that this repo was copied and pasted from my AiAppDeploy repo. All of the commits to develop the original app is in the AiAppDeploy repo. The purpose of the ai-pdf-chatbot repo is to reduce latency of the Lambda function, API call, and model request.
-
 ## RAG Apps
 
 Large Language Models (LLM)s are models for general-purpose language understanding and generation. The problem with LLMs is that they lack information about your specific use case / users. This is where Retrieval Augmented Generation (RAG) comes into play. 
