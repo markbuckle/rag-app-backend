@@ -2,13 +2,23 @@
 
 ## Overview
 
-AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happeing quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
+AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happening quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
 
+<<<<<<< HEAD
 ## RAG App
 
 Insert Retrieval Augmented Generation apps description 
 
 This app chatbot will be able to use the PDFs as a datasource.
+=======
+## Why RAG?
+
+Large Language Models (LLM)s are models for general-purpose language understanding and generation. The problem with LLMs is that they lack information about your specific use case / users. This is where Retrieval Augmented Generation (RAG) comes into play. 
+
+RAG = LLM + Knowledge base
+
+RAGs allow for models to have specific infomation pertaining to certain subjects or use cases. This RAG app chatbot will be able to use specific podcast PDFs as its datasource.
+>>>>>>> origin/main
 
 ## Getting Started:
 
@@ -350,4 +360,8 @@ I used Amazon Route 53 Hosted Zones to host a public url domain.
 
 Link: 
 
+<<<<<<< HEAD
 https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
+=======
+https://podcastaichatbot.website/
+>>>>>>> origin/main

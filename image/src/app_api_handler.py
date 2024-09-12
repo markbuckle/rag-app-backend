@@ -1,18 +1,33 @@
 import os
+<<<<<<< HEAD
 import uvicorn
 import boto3
 import json
 from typing import Optional
 
+=======
+from typing import Optional
+import uvicorn
+import boto3
+import json
+>>>>>>> origin/main
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 from pydantic import BaseModel
+<<<<<<< HEAD
 from query_model import QueryModel
 from rag_app.query_rag import query_rag
 
 WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
 CHARACTER_LIMIT = 2000
+=======
+from rag_app.query_rag import query_rag, QueryResponse
+from query_model import QueryModel
+
+WORKER_LAMBDA_NAME = os.environ.get("WORKER_LAMBDA_NAME", None)
+CHARACTER_LIMIT = 1000
+>>>>>>> origin/main
 
 app = FastAPI()
 
@@ -38,6 +53,10 @@ def index():
     return {"Hello": "World"}
 
 
+<<<<<<< HEAD
+=======
+# read and write information from the table
+>>>>>>> origin/main
 @app.get("/get_query")
 def get_query_endpoint(query_id: str) -> QueryModel:
     query = QueryModel.get_item(query_id)
@@ -56,6 +75,10 @@ def list_query_endpoint(user_id: str) -> list[QueryModel]:
 
 
 @app.post("/submit_query")
+<<<<<<< HEAD
+=======
+# def submit_query_endpoint(request: SubmitQueryRequest) -> QueryResponse:
+>>>>>>> origin/main
 def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
 
     # Check if the query is too long.
@@ -84,7 +107,10 @@ def submit_query_endpoint(request: SubmitQueryRequest) -> QueryModel:
     return new_query
 
 
+<<<<<<< HEAD
 # helper function
+=======
+>>>>>>> origin/main
 def invoke_worker(query: QueryModel):
     # Initialize the Lambda client
     lambda_client = boto3.client("lambda")

@@ -2,7 +2,7 @@ import shutil
 import sys
 import os
 from langchain_community.vectorstores import Chroma
-from get_embedding_function import get_embedding_function
+from rag_app.get_embedding_function import get_embedding_function
 
 # default to data/chroma path
 CHROMA_PATH = os.environ.get("CHROMA_PATH", "data/chroma")
