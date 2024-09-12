@@ -20,7 +20,21 @@ To create all of the Cloud infrastructure, I used AWS CDK to allow me to deploy 
 
 <img maxwidth=1000 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
 
-## Getting Started:
+## Build Steps
+
+### Build the foundation of the RAG app with Langchain and a LLM of your choice with Python
+
+[LangChain](https://www.langchain.com/) is a framework designed to simplify the creation of applications using large language models. As a language model integration framework, LangChain's use-cases largely overlap with those of language models in general, including document analysis and summarization, chatbots, and code analysis. 
+
+In this app, I decided to use LangChain and AWS Bedrock's LLM's.
+
+### Preparing the data
+
+Choose a datasource. Could be a collection of pdfs or text files. In my case I am using transcript pdfs that I generated from a podcast. 
+
+Try to make the data as clean as possible before pdf'ing it.
+
+See the **populate_database.py** file for this code.
 
 ### Install Requirements
 
@@ -41,9 +55,6 @@ Load the database and provide the response:
 ```pwsh
 python rag_app\query_rag.py
 ```
-## Architecture Overview
-
-<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
 
 ### Create FastAPI Wrapper
 
