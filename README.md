@@ -18,7 +18,7 @@ This app uses a lot of different platform specific binanaries in its dependencie
 
 To create all of the Cloud infrastructure, I used AWS CDK to allow me to deploy it to my AWS account. This allows one to access this app via a public API endpoint.
 
-<img maxwidth=1000 src="images/https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
+<img maxwidth=1000 src="https://github.com/markbuckle/AiAppDeploy/blob/main/images/architecture.png?raw=true">
 
 ## Build Steps
 
