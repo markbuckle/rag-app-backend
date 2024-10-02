@@ -1,26 +1,40 @@
-# Deploy RAG/AI App To AWS
+# AI PDF(podcast) Chatbot - Backend
 
-## Overview
-
-AI apps tend to use many platform specific binaries in its dependencies. This is challenging because some of these dependencies are sensitive to things like os/windows version, python version, and CPU architecture. What ends up happening quite often is that apps that run perfectly fine on your machine, ends up breaking in strange ways once you've deployed it and attempt to run it in the cloud. I used Docker to turn our project into a container that creates a consistent virtual environment that you can deploy anywhere. Once you have the Docker image set up correctly you should be able to deploy to AWS. The cloud infrastructure will be written in AWS CDK which can be used to deploy to our AWS account.
-
-<<<<<<< HEAD
-## RAG App
-
-Insert Retrieval Augmented Generation apps description 
-
-This app chatbot will be able to use the PDFs as a datasource.
-=======
-## Why RAG?
+## RAG Apps
 
 Large Language Models (LLM)s are models for general-purpose language understanding and generation. The problem with LLMs is that they lack information about your specific use case / users. This is where Retrieval Augmented Generation (RAG) comes into play. 
 
 RAG = LLM + Knowledge base
 
 RAGs allow for models to have specific infomation pertaining to certain subjects or use cases. This RAG app chatbot will be able to use specific podcast PDFs as its datasource.
->>>>>>> origin/main
 
-## Getting Started:
+## Architecture Overview
+
+The AI services used for the embeddings and chat is cloud-based already (AWS bedrock). Aside from that, the app runs locally and the database is saved locally. An API endpoint is a FastAPI server that wraps the app and lets us call it using API routes.
+
+For the actual hosting I used AWS Lambda to deploy this as a serverless function. Lambda is essentially a virtual server that only starts up when we send a request to it then it shuts down by itself. Thus it is extremely cheap and scalable. Lambda doesn't natively understand FastAPI's interface so I added a handler adapter to fix that.
+
+This app uses a lot of different platform specific binanaries in its dependencies. This makes this app sensitive to things like Windows/OS version, Python version, and CPU architecture. Often such apps can run successfully locally, but break after you've deployed it and try to run it in the cloud. To make sure that anyone can run this app anywhere, I placed the App itself, handler, API, and database into a Docker container image. This creates a consistent virtual environment. The Lambda function uses the image and the API endpoint allows users to access it. The AI component is external to all of this.
+
+To create all of the Cloud infrastructure, I used AWS CDK to allow me to deploy it to my AWS account. This allows one to access this app via a public API endpoint.
+
+<img maxwidth=1000 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
+
+## Build Steps
+
+### Build the foundation of the RAG app with Langchain and a LLM of your choice with Python
+
+[LangChain](https://www.langchain.com/) is a framework designed to simplify the creation of applications using large language models. As a language model integration framework, LangChain's use-cases largely overlap with those of language models in general, including document analysis and summarization, chatbots, and code analysis. 
+
+In this app, I decided to use LangChain and AWS Bedrock's LLM's.
+
+### Preparing the data
+
+Choose a datasource. Could be a collection of pdfs or text files. In my case I am using transcript pdfs that I generated from a podcast. 
+
+Try to make the data as clean as possible before pdf'ing it.
+
+See the **populate_database.py** file for this code.
 
 ### Install Requirements
 
@@ -41,9 +55,6 @@ Load the database and provide the response:
 ```pwsh
 python rag_app\query_rag.py
 ```
-## Architecture Overview
-
-<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/architecture.png?raw=true">
 
 ### Create FastAPI Wrapper
 
@@ -246,122 +257,3 @@ Use the database GSI and model we created earlier to add a new API to list query
 
 We need these CORS headers to make it work with our frontend.
 
-## Front End
-
-### Why NextJS Frontend instead of a Python Framework like Flask or Django?
-
-First, I want to be able to host this as a static page, which is not possible with either Python framework right now. 
-
-Secondly, NextJS or any JavaScript frontend framework is far ahead of Python frameworks in terms of features or developer experience, it's likely easier to learn JS than to try and close those gaps using Python frameworks. 
-
-### Create a NextJS Project
-Inside the root directory, run:
-```pwsh
-npx create-next-app@latest
-```
-Here's what I picked for the questions:
-
-<img width=600 src="https://github.com/user-attachments/assets/57137c67-9f83-4c6e-ae3c-1132a3112760">
-
-Go to the new project folder:
-```pwsh
-cd rag-app-frontend
-```
-Then run:
-```pwsh
-npm run dev
-```
-
-### Install Tools to Generate API Client
-
-We now have to create an API client to interact with our FastAPI backend from our NextJS frontend. We can automate this process using the openAPI schema provided by FastAPI.
-
-Go to the /openapi.json endpoint of your API server.
-
-<img width=500 src="https://github.com/markbuckle/AiAppDeploy/blob/main/openapiendpoint.png?raw=true">
-
-We're going to use this but first we need to install the open API generator CLI tool:
-```pwsh
-npm install @openapitools/openapi-generator-cli -g
-```
-
-Once installed you'll be able to use this command in your terminal to generate an actual TypeScript client by just point this tool at your JSON schema:
-```pwsh
-openapi-generator-cli generate -i https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/openapi.json -g typescript-fetch -o src/api-client
-```
-
-You can run the above command direct or use the command script in the package.json file to generate the client library for the API:
-
-```json
-{
-    "scripts": {
-        "generate-api-client": "openapi-generator-cli generate -i http://{yourAPIendpoint}/openapi.json -g typescript-fetch -o src/api-client"
-    }
-}
-```
-
-Generate the client into `src/api-client/` first.
-```pwsh
-npm run generate-api-client
-```
-
-An important question is when should you run the command (above)? The answer is whenever the API changes. 
-
-### API Client / User ID Utils
-
-Next will want to set up some utility functions for the API client and for the user session management. This will enable us to initialize our API client and it will also create a fake unique user id for every new browser session. This way I can test my app without having to have a user authentication process in place.
-
-In your source folder create a /lib subfolder.
-
-To generate a new and unique package id, first install uuid:
-```pwsh
-npm install uuid
-```
-
-### View Query Page
-
-Add a page to display detailed information about individual queries. It will show the question, reponse and sources. 
-
-Under /src/app create a new directory called viewQuery and create a new file called page.tsx
-
-### Rendering Components 
-
-[shadcn/ui](https://ui.shadcn.com/examples/cards) has nice pre-configured components.
-
-Run:
-```pwsh
-npx shadcn-ui@latest init
-```
-
-Then install each component separately.
-
-```pwsh
-npx shadcn-ui@latest add button
-npx shadcn-ui@latest add textarea
-npx shadcn-ui@latest add card
-npx shadcn-ui@latest add skeleton
-```
-
-### Query Submission Form
-
-Create a form component to allow users to create new queries. This form will capture user input and send it to our API for processing. 
-
-### Query List Component
-
-Build a list of our most recent queries that will link to each query page.
-
-### Final Layout
-
-Update the layout component so that theres a header, body and footer. This is mostly just styling and structure coding updates. 
-
-### Get a public API
-
-I used Amazon Route 53 Hosted Zones to host a public url domain.
-
-Link: 
-
-<<<<<<< HEAD
-https://bpve3nbtfqav4lskuxeeperrzq0qdgki.lambda-url.us-east-1.on.aws/
-=======
-https://podcastaichatbot.website/
->>>>>>> origin/main
