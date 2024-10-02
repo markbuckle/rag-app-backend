@@ -3,6 +3,9 @@
 myenv/
 .env
 
+# Archive folder
+Archive/
+
 # Some files generated for tutorial.
 original_reqs.txt
 filtered_reqs.txt
