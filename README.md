@@ -64,13 +64,13 @@ python app_api_handler.py
 ```
 You should see something like this:
 
-<img width=600 src="https://github.com/markbuckle/AiAppDeploy/blob/main/localtest.png?raw=true">
+<img width=600 src="https://github.com/markbuckle/AiAppDeploy/blob/main/images/localtest.png?raw=true">
 
 If the default address 0.0.0.0:8000 does not work, try manually typing 127.0.0.1.8000 into your URL instead.
 
 You can also type 0.0.0.0:8000/docs or 127.0.0.1.8000/docs to see the FastAPI endpoints. Go to the /submit_query endpoint and try it out. Replace the string with something like 'How can I recover faster?" You should see something like:
 
-<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/submitquery.png?raw=true">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/images/submitquery.png?raw=true">
 
 With this code we've now put our entire app inside an API. Next we have to figure out how to deploy it.
 
@@ -145,7 +145,7 @@ Assuming you've built the image from the previous step.
 docker run --rm -p 8000:8000 --entrypoint python --env-file .env aws_rag_app /var/task/app_api_handler.py
 ```
 If it runs correctly, it should look something like:
-<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/rundocker.png?raw=true">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/images/rundocker.png?raw=true">
 
 If the docker run command didn't work, it might be worth reviewing the [docker run documentation](https://docs.docker.com/engine/reference/run/) and adjusting the entrypoint, port or env-files according to your specific setup.
 
@@ -218,7 +218,7 @@ Right now, our app uses AI which can take quite a long time to execute. It might
 
 To implement this we'll have to split our Lambda into two separate functions. The user will only interact with our API function and that will trigger an asynchronous execution of the worker function in the background. 
 
-<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/asyncfunction.png?raw=true">
+<img width=800 src="https://github.com/markbuckle/AiAppDeploy/blob/main/images/asyncfunction.png?raw=true">
 
 Since the 30s timeout is a property of the API endpoint itself and not the Lambda funciton we can now configure the worker function to have a much longer timeout (up to 15 minutes). This is very good if we have a large tak for the Worker to perform.
 
